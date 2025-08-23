@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  
+  body {
+    @apply bg-gray-50 text-gray-900;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+  }
+  
+  .btn-secondary {
+    @apply bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2;
+  }
+  
+  .card {
+    @apply bg-white rounded-xl shadow-sm border border-gray-200;
+  }
+  
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: 80px repeat(5, 1fr);
+    grid-template-rows: auto repeat(24, 1fr);
+    gap: 1px;
+    background-color: #e5e7eb;
+  }
+  
+  .time-slot {
+    @apply bg-white p-2 text-sm text-gray-600 border-r border-gray-200;
+    min-height: 60px;
+  }
+  
+  .day-header {
+    @apply bg-gray-50 p-3 text-center font-medium text-gray-900 border-b border-gray-200;
+  }
+  
+  .calendar-cell {
+    @apply bg-white p-1 relative min-h-[60px] hover:bg-gray-50 transition-colors;
+  }
+  
+  .event-block {
+    @apply absolute left-1 right-1 bg-primary-100 border-l-4 border-primary-500 rounded-r px-2 py-1 text-xs text-primary-800 overflow-hidden;
+    z-index: 10;
+  }
+  
+  .event-title {
+    @apply font-medium truncate;
+  }
+  
+  .event-time {
+    @apply text-primary-600 opacity-75;
+  }
+}
