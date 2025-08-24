@@ -50,7 +50,7 @@ app.use('/api/auth', createAuthRoutes(googleAuth, database));
 app.use('/api/calendar', createCalendarRoutes(calendarService, database));
 
 // Health check
-app.get('/api/health', (req, res) => {
+app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
@@ -59,13 +59,13 @@ if (process.env.NODE_ENV === 'production') {
   const clientPath = path.join(__dirname, '../client');
   app.use(express.static(clientPath));
   
-  app.get('*', (req, res) => {
+  app.get('*', (_req, res) => {
     res.sendFile(path.join(clientPath, 'index.html'));
   });
 }
 
 // Error handling
-app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error('Server error:', err);
   res.status(500).json({ error: 'Internal server error' });
 });

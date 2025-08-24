@@ -68,7 +68,7 @@ export class Database {
   }
 
   async saveUser(user: User): Promise<void> {
-    const run = promisify(this.db.run.bind(this.db));
+    const run = promisify(this.db.run.bind(this.db)) as (sql: string, params?: any[]) => Promise<any>;
     await run(
       `INSERT OR REPLACE INTO users 
        (id, email, name, picture, access_token, refresh_token, expires_at, updated_at) 
@@ -78,13 +78,13 @@ export class Database {
   }
 
   async getUser(userId: string): Promise<User | null> {
-    const get = promisify(this.db.get.bind(this.db));
+    const get = promisify(this.db.get.bind(this.db)) as (sql: string, params?: any[]) => Promise<any>;
     const row = await get('SELECT * FROM users WHERE id = ?', [userId]) as any;
     return row || null;
   }
 
   async saveCalendars(userId: string, calendars: Calendar[]): Promise<void> {
-    const run = promisify(this.db.run.bind(this.db));
+    const run = promisify(this.db.run.bind(this.db)) as (sql: string, params?: any[]) => Promise<any>;
     
     // Clear existing calendars for this user
     await run('DELETE FROM calendars WHERE user_id = ?', [userId]);
@@ -101,7 +101,7 @@ export class Database {
   }
 
   async getCalendars(userId: string): Promise<Calendar[]> {
-    const all = promisify(this.db.all.bind(this.db));
+    const all = promisify(this.db.all.bind(this.db)) as (sql: string, params?: any[]) => Promise<any[]>;
     const rows = await all('SELECT * FROM calendars WHERE user_id = ? ORDER BY is_primary DESC, summary', [userId]) as any[];
     return rows.map(row => ({
       id: row.id,
@@ -113,7 +113,7 @@ export class Database {
   }
 
   async setSelectedCalendar(userId: string, calendarId: string): Promise<void> {
-    const run = promisify(this.db.run.bind(this.db));
+    const run = promisify(this.db.run.bind(this.db)) as (sql: string, params?: any[]) => Promise<any>;
     
     // Unselect all calendars for this user
     await run('UPDATE calendars SET is_selected = FALSE WHERE user_id = ?', [userId]);
@@ -123,13 +123,13 @@ export class Database {
   }
 
   async getSelectedCalendar(userId: string): Promise<string | null> {
-    const get = promisify(this.db.get.bind(this.db));
+    const get = promisify(this.db.get.bind(this.db)) as (sql: string, params?: any[]) => Promise<any>;
     const row = await get('SELECT id FROM calendars WHERE user_id = ? AND is_selected = TRUE', [userId]) as any;
     return row?.id || null;
   }
 
   async saveEvents(calendarId: string, events: DatabaseEvent[]): Promise<void> {
-    const run = promisify(this.db.run.bind(this.db));
+    const run = promisify(this.db.run.bind(this.db)) as (sql: string, params?: any[]) => Promise<any>;
     
     // Clear existing events for this calendar
     await run('DELETE FROM events WHERE calendar_id = ?', [calendarId]);
@@ -150,7 +150,7 @@ export class Database {
   }
 
   async getEvents(calendarId: string, startDate: string, endDate: string): Promise<DatabaseEvent[]> {
-    const all = promisify(this.db.all.bind(this.db));
+    const all = promisify(this.db.all.bind(this.db)) as (sql: string, params?: any[]) => Promise<any[]>;
     const rows = await all(
       `SELECT * FROM events 
        WHERE calendar_id = ? 
@@ -177,7 +177,7 @@ export class Database {
   }
 
   async close(): Promise<void> {
-    const close = promisify(this.db.close.bind(this.db));
+    const close = promisify(this.db.close.bind(this.db)) as () => Promise<void>;
     await close();
   }
 }

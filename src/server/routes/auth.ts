@@ -3,10 +3,15 @@ import { GoogleAuthService } from '../services/googleAuth.js';
 import { Database } from '../database/database.js';
 import { User } from '../types/index.js';
 
+declare module 'express-session' {
+  interface SessionData {
+    userId: string;
+  }
+}
 export function createAuthRoutes(googleAuth: GoogleAuthService, database: Database) {
   const router = express.Router();
 
-  router.get('/login', (req, res) => {
+  router.get('/login', (_req, res) => {
     const authUrl = googleAuth.getAuthUrl();
     res.redirect(authUrl);
   });

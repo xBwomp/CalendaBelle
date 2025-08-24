@@ -35,7 +35,7 @@ export interface DatabaseEvent {
 export interface Calendar {
   id: string;
   summary: string;
-  description?: string;
+  description?: string | null;
   primary?: boolean;
   accessRole: string;
 }
@@ -44,7 +44,7 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  picture?: string;
+  picture?: string | null;
   access_token: string;
   refresh_token: string;
   expires_at: number;

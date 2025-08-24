@@ -1,7 +1,7 @@
 import { google } from 'googleapis';
 import { GoogleAuthService } from './googleAuth.js';
 import { Database } from '../database/database.js';
-import { CalendarEvent, DatabaseEvent, Calendar, User } from '../types/index.js';
+import { DatabaseEvent, Calendar, User } from '../types/index.js';
 
 export class CalendarService {
   private googleAuth: GoogleAuthService;
@@ -31,7 +31,7 @@ export class CalendarService {
       const calendars: Calendar[] = response.data.items?.map(item => ({
         id: item.id!,
         summary: item.summary!,
-        description: item.description,
+        description: item.description || null,
         primary: item.primary,
         accessRole: item.accessRole!
       })) || [];

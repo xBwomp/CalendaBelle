@@ -2,6 +2,11 @@ import express from 'express';
 import { CalendarService } from '../services/calendarService.js';
 import { Database } from '../database/database.js';
 
+declare module 'express-session' {
+  interface SessionData {
+    userId: string;
+  }
+}
 export function createCalendarRoutes(calendarService: CalendarService, database: Database) {
   const router = express.Router();
 
