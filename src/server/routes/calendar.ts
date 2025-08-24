@@ -1,6 +1,6 @@
 import express from 'express';
-import { CalendarService } from '../services/calendarService.ts';
-import { Database } from '../database/database.ts';
+import { CalendarService } from '../services/calendarService.js';
+import { Database } from '../database/database.js';
 
 declare module 'express-session' {
   interface SessionData {
