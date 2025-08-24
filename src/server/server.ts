@@ -56,11 +56,20 @@ app.get('/api/health', (_req, res) => {
 
 // Serve static files in production
 if (process.env.NODE_ENV === 'production') {
-  const clientPath = path.join(__dirname, '../client');
+  const clientPath = path.join(__dirname, 'client');
   app.use(express.static(clientPath));
   
   app.get('*', (_req, res) => {
     res.sendFile(path.join(clientPath, 'index.html'));
+  });
+} else {
+  // In development, serve a simple message since Vite handles the frontend
+  app.get('/', (_req, res) => {
+    res.json({ 
+      message: 'Google Calendar Kiosk API Server', 
+      status: 'running',
+      note: 'Frontend should be served by Vite on port 3000'
+    });
   });
 }
 
