@@ -32,7 +32,7 @@ export class CalendarService {
         id: item.id!,
         summary: item.summary!,
         description: item.description || null,
-        primary: item.primary,
+        primary: item.primary || undefined,
         accessRole: item.accessRole!
       })) || [];
 
