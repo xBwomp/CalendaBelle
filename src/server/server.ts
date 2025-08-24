@@ -10,6 +10,11 @@ import { GoogleAuthService } from './services/googleAuth.js';
 import { CalendarService } from './services/calendarService.js';
 import { createAuthRoutes } from './routes/auth.js';
 import { createCalendarRoutes } from './routes/calendar.js';
+import { Database } from './database/database.ts';
+import { GoogleAuthService } from './services/googleAuth.ts';
+import { CalendarService } from './services/calendarService.ts';
+import { createAuthRoutes } from './routes/auth.ts';
+import { createCalendarRoutes } from './routes/calendar.ts';
 
 // Load environment variables
 dotenv.config();

@@ -1,4 +1,4 @@
-import { Database } from './database/database.js';
+import { Database } from './database/database.ts';
 import dotenv from 'dotenv';
 
 // Load environment variables

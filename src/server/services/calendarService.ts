@@ -1,6 +1,6 @@
 import { google } from 'googleapis';
-import { GoogleAuthService } from './googleAuth.js';
-import { Database } from '../database/database.js';
+import { GoogleAuthService } from './googleAuth.ts';
+import { Database } from '../database/database.ts';
 import { DatabaseEvent, Calendar, User } from '../types/index.js';
 
 export class CalendarService {

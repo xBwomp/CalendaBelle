@@ -1,6 +1,6 @@
 import express from 'express';
-import { GoogleAuthService } from '../services/googleAuth.js';
-import { Database } from '../database/database.js';
+import { GoogleAuthService } from '../services/googleAuth.ts';
+import { Database } from '../database/database.ts';
 import { User } from '../types/index.js';
 
 declare module 'express-session' {
