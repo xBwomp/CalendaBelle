@@ -1,4 +1,36 @@
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  picture?: string;
+  access_token: string;
+  refresh_token: string;
+  expires_at: number;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface CalendarEvent {
+  id: string;
+  title: string;
+  description?: string;
+  start_time: string;
+  end_time: string;
+  location?: string;
+  sync_timestamp: string;
+  google_event_id: string;
+  is_all_day: boolean;
+  status: string;
+}
+
+export interface SyncStatus {
+  last_sync: string;
+  status: 'success' | 'error' | 'in_progress';
+  error_message?: string;
+  events_synced: number;
+}
+
+export interface GoogleCalendarEvent {
   id: string;
   summary: string;
   description?: string;
@@ -16,36 +48,4 @@ export interface CalendarEvent {
   status: string;
   created: string;
   updated: string;
-}
-
-export interface DatabaseEvent {
-  id: string;
-  summary: string;
-  description: string | null;
-  start_datetime: string;
-  end_datetime: string;
-  location: string | null;
-  status: string;
-  created: string;
-  updated: string;
-  calendar_id: string;
-  is_all_day: boolean;
-}
-
-export interface Calendar {
-  id: string;
-  summary: string;
-  description?: string | null;
-  primary?: boolean;
-  accessRole: string;
-}
-
-export interface User {
-  id: string;
-  email: string;
-  name: string;
-  picture?: string | null;
-  access_token: string;
-  refresh_token: string;
-  expires_at: number;
 }

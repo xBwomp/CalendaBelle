@@ -1,124 +1,94 @@
-import { useState, useEffect } from 'react';
-import { Calendar, CalendarEvent } from '../types';
+import { useState, useEffect, useCallback } from 'react';
+import { CalendarEvent, SyncStatus } from '../types';
 
 export function useCalendar() {
-  const [calendars, setCalendars] = useState<Calendar[]>([]);
-  const [selectedCalendarId, setSelectedCalendarId] = useState<string | null>(null);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null);
   const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const fetchCalendars = async () => {
+  const fetchEvents = useCallback(async (startDate: string, endDate: string) => {
     try {
-      const response = await fetch('/api/calendar/calendars', {
-        credentials: 'include'
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setCalendars(data);
-      }
-    } catch (error) {
-      console.error('Failed to fetch calendars:', error);
-    }
-  };
-
-  const fetchSelectedCalendar = async () => {
-    try {
-      const response = await fetch('/api/calendar/calendars/selected', {
-        credentials: 'include'
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setSelectedCalendarId(data.selectedCalendarId);
-      }
-    } catch (error) {
-      console.error('Failed to fetch selected calendar:', error);
-    }
-  };
-
-  const syncCalendars = async () => {
-    setSyncing(true);
-    try {
-      const response = await fetch('/api/calendar/calendars/sync', {
-        method: 'POST',
-        credentials: 'include'
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setCalendars(data);
-      }
-    } catch (error) {
-      console.error('Failed to sync calendars:', error);
-    } finally {
-      setSyncing(false);
-    }
-  };
-
-  const selectCalendar = async (calendarId: string) => {
-    try {
-      const response = await fetch(`/api/calendar/calendars/${calendarId}/select`, {
-        method: 'POST',
-        credentials: 'include'
-      });
-      if (response.ok) {
-        setSelectedCalendarId(calendarId);
-      }
-    } catch (error) {
-      console.error('Failed to select calendar:', error);
-    }
-  };
-
-  const syncEvents = async () => {
-    if (!selectedCalendarId) return;
-    
-    setSyncing(true);
-    try {
-      const response = await fetch('/api/calendar/events/sync', {
-        method: 'POST',
-        credentials: 'include'
-      });
-      if (!response.ok) {
-        throw new Error('Failed to sync events');
-      }
-    } catch (error) {
-      console.error('Failed to sync events:', error);
-    } finally {
-      setSyncing(false);
-    }
-  };
-
-  const fetchEvents = async (startDate: string, endDate: string) => {
-    setLoading(true);
-    try {
+      setLoading(true);
+      setError(null);
+      
       const response = await fetch(
         `/api/calendar/events?startDate=${startDate}&endDate=${endDate}`,
         { credentials: 'include' }
       );
-      if (response.ok) {
-        const data = await response.json();
-        setEvents(data);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch events: ${response.statusText}`);
       }
+      
+      const data = await response.json();
+      setEvents(data);
     } catch (error) {
       console.error('Failed to fetch events:', error);
+      setError(error instanceof Error ? error.message : 'Failed to fetch events');
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchCalendars();
-    fetchSelectedCalendar();
   }, []);
 
+  const fetchSyncStatus = useCallback(async () => {
+    try {
+      const response = await fetch('/api/calendar/sync/status', {
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setSyncStatus(data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch sync status:', error);
+    }
+  }, []);
+
+  const syncCalendar = useCallback(async () => {
+    try {
+      setSyncing(true);
+      setError(null);
+      
+      const response = await fetch('/api/calendar/sync', {
+        method: 'POST',
+        credentials: 'include'
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Sync failed');
+      }
+      
+      // Refresh sync status and events after successful sync
+      await fetchSyncStatus();
+      
+      return data;
+    } catch (error) {
+      console.error('Calendar sync failed:', error);
+      setError(error instanceof Error ? error.message : 'Calendar sync failed');
+      throw error;
+    } finally {
+      setSyncing(false);
+    }
+  }, [fetchSyncStatus]);
+
+  // Initial data fetch
+  useEffect(() => {
+    fetchSyncStatus();
+  }, [fetchSyncStatus]);
+
   return {
-    calendars,
-    selectedCalendarId,
     events,
+    syncStatus,
     loading,
     syncing,
-    syncCalendars,
-    selectCalendar,
-    syncEvents,
-    fetchEvents
+    error,
+    fetchEvents,
+    fetchSyncStatus,
+    syncCalendar
   };
 }

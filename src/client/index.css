@@ -8,17 +8,17 @@
   }
   
   body {
-    @apply bg-gray-50 text-gray-900;
+    @apply bg-gray-50 text-gray-900 antialiased;
   }
 }
 
 @layer components {
   .btn-primary {
-    @apply bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+    @apply bg-primary-600 hover:bg-primary-700 disabled:bg-primary-300 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:cursor-not-allowed;
   }
   
   .btn-secondary {
-    @apply bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2;
+    @apply bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 text-gray-800 disabled:text-gray-400 font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:cursor-not-allowed;
   }
   
   .card {
@@ -27,27 +27,44 @@
   
   .calendar-grid {
     display: grid;
-    grid-template-columns: 80px repeat(5, 1fr);
-    grid-template-rows: auto repeat(24, 1fr);
+    grid-template-columns: 100px repeat(5, 1fr);
     gap: 1px;
     background-color: #e5e7eb;
+    border-radius: 8px;
+    overflow: hidden;
   }
   
-  .time-slot {
-    @apply bg-white p-2 text-sm text-gray-600 border-r border-gray-200;
-    min-height: 60px;
+  .time-header {
+    @apply bg-gray-100 p-3 text-sm font-medium text-gray-700 text-center border-b border-gray-200;
   }
   
   .day-header {
-    @apply bg-gray-50 p-3 text-center font-medium text-gray-900 border-b border-gray-200;
+    @apply bg-gray-100 p-3 text-center font-semibold text-gray-900 border-b border-gray-200;
+  }
+  
+  .day-header.today {
+    @apply bg-primary-100 text-primary-900;
+  }
+  
+  .time-slot {
+    @apply bg-white p-2 text-xs text-gray-600 text-center font-medium border-r border-gray-200;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
   
   .calendar-cell {
-    @apply bg-white p-1 relative min-h-[60px] hover:bg-gray-50 transition-colors;
+    @apply bg-white p-1 relative;
+    min-height: 60px;
+  }
+  
+  .calendar-cell.current-hour {
+    @apply bg-yellow-50;
   }
   
   .event-block {
-    @apply absolute left-1 right-1 bg-primary-100 border-l-4 border-primary-500 rounded-r px-2 py-1 text-xs text-primary-800 overflow-hidden;
+    @apply absolute left-1 right-1 bg-primary-100 border-l-4 border-primary-500 rounded-r px-2 py-1 text-xs text-primary-800 overflow-hidden cursor-pointer hover:bg-primary-200 transition-colors;
     z-index: 10;
   }
   
@@ -56,6 +73,26 @@
   }
   
   .event-time {
-    @apply text-primary-600 opacity-75;
+    @apply text-primary-600 opacity-75 text-xs;
+  }
+  
+  .event-location {
+    @apply text-primary-600 opacity-60 text-xs truncate;
+  }
+  
+  .sync-indicator {
+    @apply inline-flex items-center px-2 py-1 rounded-full text-xs font-medium;
+  }
+  
+  .sync-indicator.success {
+    @apply bg-green-100 text-green-800;
+  }
+  
+  .sync-indicator.error {
+    @apply bg-red-100 text-red-800;
+  }
+  
+  .sync-indicator.in-progress {
+    @apply bg-yellow-100 text-yellow-800;
   }
 }

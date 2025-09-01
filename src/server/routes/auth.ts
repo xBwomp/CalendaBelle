@@ -5,66 +5,87 @@ import { User } from '../types/index.js';
 
 declare module 'express-session' {
   interface SessionData {
-    userId: string;
+    isAuthenticated: boolean;
+    userId?: string;
   }
 }
+
 export function createAuthRoutes(googleAuth: GoogleAuthService, database: Database) {
   const router = express.Router();
 
-  router.get('/login', (_req, res) => {
-    const authUrl = googleAuth.getAuthUrl();
-    res.redirect(authUrl);
+  // Initiate Google OAuth flow
+  router.get('/login', (req, res) => {
+    try {
+      const authUrl = googleAuth.getAuthUrl();
+      res.redirect(authUrl);
+    } catch (error) {
+      console.error('Auth login error:', error);
+      res.status(500).json({ error: 'Failed to initiate authentication' });
+    }
   });
 
+  // Handle OAuth callback
   router.get('/callback', async (req, res) => {
     try {
-      const { code } = req.query;
-      if (!code || typeof code !== 'string') {
-        return res.status(400).json({ error: 'Authorization code required' });
+      const { code, error } = req.query;
+      
+      if (error) {
+        console.error('OAuth error:', error);
+        return res.redirect('/?error=oauth_error');
       }
 
-      const tokens = await googleAuth.getTokens(code);
-      const userInfo = await googleAuth.getUserInfo(tokens.access_token!);
+      if (!code || typeof code !== 'string') {
+        return res.redirect('/?error=missing_code');
+      }
 
+      // Exchange code for tokens
+      const tokens = await googleAuth.getTokens(code);
+      
+      if (!tokens.access_token) {
+        throw new Error('No access token received');
+      }
+
+      // Get user info
+      const userInfo = await googleAuth.getUserInfo(tokens.access_token);
+
+      // Save user to database
       const user: User = {
         id: userInfo.id,
         email: userInfo.email,
         name: userInfo.name,
         picture: userInfo.picture,
-        access_token: tokens.access_token!,
+        access_token: tokens.access_token,
         refresh_token: tokens.refresh_token || '',
-        expires_at: tokens.expiry_date || Date.now() + 3600000
+        expires_at: tokens.expiry_date || Date.now() + 3600000,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       };
 
       await database.saveUser(user);
-      
-      // Store user ID in session
+
+      // Set session
+      req.session.isAuthenticated = true;
       req.session.userId = user.id;
 
+      console.log(`User authenticated successfully: ${user.email}`);
       res.redirect('/?auth=success');
+
     } catch (error) {
       console.error('Auth callback error:', error);
-      res.redirect('/?auth=error');
+      res.redirect('/?error=auth_failed');
     }
   });
 
-  router.post('/logout', (req, res) => {
-    req.session.destroy((err) => {
-      if (err) {
-        return res.status(500).json({ error: 'Could not log out' });
-      }
-      res.json({ success: true });
-    });
-  });
-
+  // Check authentication status
   router.get('/status', async (req, res) => {
-    if (!req.session.userId) {
-      return res.json({ authenticated: false });
-    }
-
     try {
-      const user = await database.getUser(req.session.userId);
+      if (!req.session.isAuthenticated) {
+        return res.json({ authenticated: false });
+      }
+
+      const user = await database.getUser();
       if (!user) {
+        req.session.isAuthenticated = false;
         return res.json({ authenticated: false });
       }
 
@@ -77,9 +98,32 @@ export function createAuthRoutes(googleAuth: GoogleAuthService, database: Databa
           picture: user.picture
         }
       });
+
     } catch (error) {
       console.error('Auth status error:', error);
-      res.json({ authenticated: false });
+      res.status(500).json({ error: 'Failed to check authentication status' });
+    }
+  });
+
+  // Logout
+  router.post('/logout', async (req, res) => {
+    try {
+      // Clear database
+      await database.deleteUser();
+      
+      // Clear session
+      req.session.destroy((err) => {
+        if (err) {
+          console.error('Session destroy error:', err);
+          return res.status(500).json({ error: 'Failed to logout' });
+        }
+        
+        res.json({ success: true });
+      });
+
+    } catch (error) {
+      console.error('Logout error:', error);
+      res.status(500).json({ error: 'Failed to logout' });
     }
   });
 

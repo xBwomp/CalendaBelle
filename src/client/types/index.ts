@@ -10,26 +10,25 @@ export interface AuthStatus {
   user?: User;
 }
 
-export interface Calendar {
-  id: string;
-  summary: string;
-  description?: string;
-  primary?: boolean;
-  accessRole: string;
-}
-
 export interface CalendarEvent {
   id: string;
-  calendar_id: string;
-  summary: string;
+  google_event_id: string;
+  title: string;
   description?: string;
-  start_datetime: string;
-  end_datetime: string;
+  start_time: string;
+  end_time: string;
   location?: string;
-  status: string;
   is_all_day: boolean;
-  created: string;
-  updated: string;
+  status: string;
+  sync_timestamp: string;
+}
+
+export interface SyncStatus {
+  id?: number;
+  last_sync: string;
+  status: 'success' | 'error' | 'in_progress';
+  error_message?: string;
+  events_synced: number;
 }
 
 export interface CalendarDay {
@@ -37,9 +36,11 @@ export interface CalendarDay {
   dayName: string;
   dayNumber: number;
   isToday: boolean;
+  isWeekend: boolean;
 }
 
 export interface TimeSlot {
   hour: number;
   displayTime: string;
+  is24Hour: boolean;
 }

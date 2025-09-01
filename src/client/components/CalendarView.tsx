@@ -1,28 +1,31 @@
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, Settings, LogOut, Calendar as CalendarIcon, Wifi, WifiOff } from 'lucide-react';
-import { CalendarEvent, CalendarDay, TimeSlot } from '../types';
+import { RefreshCw, LogOut, Calendar as CalendarIcon, Wifi, WifiOff, Clock, AlertCircle, CheckCircle } from 'lucide-react';
+import { CalendarEvent, CalendarDay, TimeSlot, SyncStatus, User } from '../types';
 
 interface CalendarViewProps {
   events: CalendarEvent[];
+  syncStatus: SyncStatus | null;
   loading: boolean;
   syncing: boolean;
-  onSyncEvents: () => void;
-  onShowSettings: () => void;
+  user: User;
+  onSyncCalendar: () => Promise<any>;
   onLogout: () => void;
-  userName: string;
+  onRefreshEvents: () => void;
 }
 
 export function CalendarView({
   events,
+  syncStatus,
   loading,
   syncing,
-  onSyncEvents,
-  onShowSettings,
+  user,
+  onSyncCalendar,
   onLogout,
-  userName
+  onRefreshEvents
 }: CalendarViewProps) {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [syncError, setSyncError] = useState<string | null>(null);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -42,7 +45,17 @@ export function CalendarView({
     };
   }, []);
 
-  const days = generateDays();
+  const handleSync = async () => {
+    try {
+      setSyncError(null);
+      await onSyncCalendar();
+      onRefreshEvents();
+    } catch (error) {
+      setSyncError(error instanceof Error ? error.message : 'Sync failed');
+    }
+  };
+
+  const days = generateWorkDays();
   const timeSlots = generateTimeSlots();
 
   return (
@@ -55,16 +68,31 @@ export function CalendarView({
               <div className="flex items-center space-x-2">
                 <CalendarIcon className="w-6 h-6 text-primary-600" />
                 <h1 className="text-xl font-semibold text-gray-900">
-                  Calendar Kiosk
+                  Calendar Dashboard
                 </h1>
               </div>
-              <div className="flex items-center space-x-2 text-sm text-gray-500">
-                {isOnline ? (
-                  <Wifi className="w-4 h-4 text-green-500" />
-                ) : (
-                  <WifiOff className="w-4 h-4 text-red-500" />
+              
+              <div className="flex items-center space-x-4 text-sm">
+                <div className="flex items-center space-x-2 text-gray-500">
+                  {isOnline ? (
+                    <Wifi className="w-4 h-4 text-green-500" />
+                  ) : (
+                    <WifiOff className="w-4 h-4 text-red-500" />
+                  )}
+                  <span>{isOnline ? 'Online' : 'Offline'}</span>
+                </div>
+                
+                {syncStatus && (
+                  <div className={`sync-indicator ${syncStatus.status}`}>
+                    {syncStatus.status === 'success' && <CheckCircle className="w-3 h-3 mr-1" />}
+                    {syncStatus.status === 'error' && <AlertCircle className="w-3 h-3 mr-1" />}
+                    {syncStatus.status === 'in_progress' && <Clock className="w-3 h-3 mr-1" />}
+                    <span>
+                      Last sync: {new Date(syncStatus.last_sync).toLocaleTimeString()}
+                      {syncStatus.status === 'success' && ` (${syncStatus.events_synced} events)`}
+                    </span>
+                  </div>
                 )}
-                <span>{isOnline ? 'Online' : 'Offline'}</span>
               </div>
             </div>
 
@@ -88,10 +116,10 @@ export function CalendarView({
 
               <div className="flex items-center space-x-2">
                 <button
-                  onClick={onSyncEvents}
+                  onClick={handleSync}
                   disabled={syncing || !isOnline}
                   className="btn-secondary flex items-center space-x-2"
-                  title={!isOnline ? 'Sync requires internet connection' : 'Sync events'}
+                  title={!isOnline ? 'Sync requires internet connection' : 'Sync calendar'}
                 >
                   <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
                   <span className="hidden sm:inline">
@@ -100,17 +128,9 @@ export function CalendarView({
                 </button>
 
                 <button
-                  onClick={onShowSettings}
-                  className="btn-secondary"
-                  title="Settings"
-                >
-                  <Settings className="w-4 h-4" />
-                </button>
-
-                <button
                   onClick={onLogout}
                   className="btn-secondary text-red-600 hover:bg-red-50"
-                  title={`Sign out ${userName}`}
+                  title={`Sign out ${user.name}`}
                 >
                   <LogOut className="w-4 h-4" />
                 </button>
@@ -120,16 +140,33 @@ export function CalendarView({
         </div>
       </header>
 
+      {/* Error Messages */}
+      {syncError && (
+        <div className="mx-6 mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <div className="flex items-center space-x-2">
+            <AlertCircle className="w-5 h-5 text-red-500" />
+            <p className="text-red-800">{syncError}</p>
+          </div>
+        </div>
+      )}
+
+      {syncStatus?.status === 'error' && syncStatus.error_message && (
+        <div className="mx-6 mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <div className="flex items-center space-x-2">
+            <AlertCircle className="w-5 h-5 text-red-500" />
+            <p className="text-red-800">Sync Error: {syncStatus.error_message}</p>
+          </div>
+        </div>
+      )}
+
       {/* Calendar Grid */}
       <main className="p-6">
         <div className="card overflow-hidden">
           <div className="calendar-grid">
-            {/* Time column header */}
-            <div className="day-header">Time</div>
-            
-            {/* Day headers */}
+            {/* Headers */}
+            <div className="time-header">Time</div>
             {days.map((day) => (
-              <div key={day.date.toISOString()} className={`day-header ${day.isToday ? 'bg-primary-50 text-primary-900' : ''}`}>
+              <div key={day.date.toISOString()} className={`day-header ${day.isToday ? 'today' : ''}`}>
                 <div className="font-semibold">{day.dayName}</div>
                 <div className={`text-lg ${day.isToday ? 'text-primary-600' : 'text-gray-600'}`}>
                   {day.dayNumber}
@@ -146,13 +183,19 @@ export function CalendarView({
                 </div>
                 
                 {/* Calendar cells for each day */}
-                {days.map((day) => (
-                  <div key={`${day.date.toISOString()}-${timeSlot.hour}`} className="calendar-cell">
-                    {getEventsForTimeSlot(events, day.date, timeSlot.hour).map((event, index) => (
-                      <EventBlock key={`${event.id}-${index}`} event={event} />
-                    ))}
-                  </div>
-                ))}
+                {days.map((day) => {
+                  const isCurrentHour = day.isToday && timeSlot.hour === currentTime.getHours();
+                  return (
+                    <div 
+                      key={`${day.date.toISOString()}-${timeSlot.hour}`} 
+                      className={`calendar-cell ${isCurrentHour ? 'current-hour' : ''}`}
+                    >
+                      {getEventsForTimeSlot(events, day.date, timeSlot.hour).map((event, index) => (
+                        <EventBlock key={`${event.id}-${index}`} event={event} />
+                      ))}
+                    </div>
+                  );
+                })}
               </React.Fragment>
             ))}
           </div>
@@ -182,26 +225,38 @@ export function CalendarView({
 }
 
 function EventBlock({ event }: { event: CalendarEvent }) {
-  const startTime = new Date(event.start_datetime);
-  const endTime = new Date(event.end_datetime);
+  const startTime = new Date(event.start_time);
+  const endTime = new Date(event.end_time);
+  
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit',
+      hour12: true 
+    });
+  };
   
   return (
-    <div className="event-block" title={`${event.summary}\n${event.location || ''}\n${startTime.toLocaleTimeString()} - ${endTime.toLocaleTimeString()}`}>
-      <div className="event-title">{event.summary}</div>
+    <div 
+      className="event-block" 
+      title={`${event.title}${event.location ? `\n📍 ${event.location}` : ''}${event.description ? `\n${event.description}` : ''}\n🕐 ${formatTime(startTime)} - ${formatTime(endTime)}`}
+    >
+      <div className="event-title">{event.title}</div>
       {!event.is_all_day && (
         <div className="event-time">
-          {startTime.toLocaleTimeString('en-US', { 
-            hour: 'numeric', 
-            minute: '2-digit',
-            hour12: true 
-          })}
+          {formatTime(startTime)}
+        </div>
+      )}
+      {event.location && (
+        <div className="event-location">
+          📍 {event.location}
         </div>
       )}
     </div>
   );
 }
 
-function generateDays(): CalendarDay[] {
+function generateWorkDays(): CalendarDay[] {
   const days: CalendarDay[] = [];
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -214,7 +269,8 @@ function generateDays(): CalendarDay[] {
       date,
       dayName: date.toLocaleDateString('en-US', { weekday: 'short' }),
       dayNumber: date.getDate(),
-      isToday: i === 0
+      isToday: i === 0,
+      isWeekend: date.getDay() === 0 || date.getDay() === 6
     });
   }
 
@@ -224,13 +280,15 @@ function generateDays(): CalendarDay[] {
 function generateTimeSlots(): TimeSlot[] {
   const slots: TimeSlot[] = [];
   
-  for (let hour = 0; hour < 24; hour++) {
+  // 6 AM to 10 PM (18 hours)
+  for (let hour = 6; hour <= 22; hour++) {
     slots.push({
       hour,
       displayTime: new Date(0, 0, 0, hour).toLocaleTimeString('en-US', {
         hour: 'numeric',
         hour12: true
-      })
+      }),
+      is24Hour: false
     });
   }
 
@@ -245,8 +303,8 @@ function getEventsForTimeSlot(events: CalendarEvent[], date: Date, hour: number)
   slotEnd.setHours(hour + 1, 0, 0, 0);
 
   return events.filter(event => {
-    const eventStart = new Date(event.start_datetime);
-    const eventEnd = new Date(event.end_datetime);
+    const eventStart = new Date(event.start_time);
+    const eventEnd = new Date(event.end_time);
 
     // Check if event overlaps with this time slot
     return eventStart < slotEnd && eventEnd > slotStart;

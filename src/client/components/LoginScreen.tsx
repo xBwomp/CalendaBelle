@@ -1,11 +1,12 @@
 import React from 'react';
-import { Calendar, Shield, Wifi } from 'lucide-react';
+import { Calendar, Shield, Wifi, Clock } from 'lucide-react';
 
 interface LoginScreenProps {
   onLogin: () => void;
+  error?: string | null;
 }
 
-export function LoginScreen({ onLogin }: LoginScreenProps) {
+export function LoginScreen({ onLogin, error }: LoginScreenProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center p-4">
       <div className="max-w-md w-full">
@@ -17,12 +18,18 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
           </div>
           
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Calendar Kiosk
+            Calendar Dashboard
           </h1>
           
           <p className="text-gray-600 mb-8">
-            Sync your Google Calendar and view your schedule in a clean, kiosk-friendly interface.
+            Sync your Google Calendar for offline viewing on your Raspberry Pi display.
           </p>
+          
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-800 text-sm">{error}</p>
+            </div>
+          )}
           
           <button
             onClick={onLogin}
@@ -38,17 +45,21 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
             </div>
             <div className="flex items-center justify-center space-x-2">
               <Wifi className="w-4 h-4" />
-              <span>Works offline after initial sync</span>
+              <span>Works offline after sync</span>
+            </div>
+            <div className="flex items-center justify-center space-x-2">
+              <Clock className="w-4 h-4" />
+              <span>Auto-sync every 15 minutes</span>
             </div>
             <div className="flex items-center justify-center space-x-2">
               <Calendar className="w-4 h-4" />
-              <span>Read-only access to your calendars</span>
+              <span>Read-only calendar access</span>
             </div>
           </div>
         </div>
         
         <div className="text-center mt-6 text-sm text-gray-500">
-          <p>Perfect for Raspberry Pi kiosk displays</p>
+          <p>Optimized for Raspberry Pi displays</p>
         </div>
       </div>
     </div>
