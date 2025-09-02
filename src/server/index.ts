@@ -59,9 +59,20 @@ if (!existsSync(dbDir)) {
   console.log(`Created directory: ${dbDir}`);
 }
 
-const database = new Database(dbPath);
-const googleAuth = new GoogleAuthService();
-const syncService = new CalendarSyncService(googleAuth, database);
+// Initialize services with error handling
+let database: Database;
+let googleAuth: GoogleAuthService;
+let syncService: CalendarSyncService;
+
+try {
+  database = new Database(dbPath);
+  googleAuth = new GoogleAuthService();
+  syncService = new CalendarSyncService(googleAuth, database);
+  console.log('✅ Services initialized successfully');
+} catch (error) {
+  console.error('❌ Failed to initialize services:', error);
+  process.exit(1);
+}
 
 // API Routes
 app.use('/api/auth', createAuthRoutes(googleAuth, database));

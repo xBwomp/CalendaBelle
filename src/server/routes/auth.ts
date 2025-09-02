@@ -16,11 +16,20 @@ export function createAuthRoutes(googleAuth: GoogleAuthService, database: Databa
   // Initiate Google OAuth flow
   router.get('/login', (req, res) => {
     try {
+      if (!googleAuth.isReady()) {
+        return res.status(503).json({ 
+          error: 'Google OAuth2 not configured. Please check server configuration.' 
+        });
+      }
+      
       const authUrl = googleAuth.getAuthUrl();
       res.redirect(authUrl);
     } catch (error) {
       console.error('Auth login error:', error);
-      res.status(500).json({ error: 'Failed to initiate authentication' });
+      res.status(500).json({ 
+        error: 'Failed to initiate authentication',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
 
