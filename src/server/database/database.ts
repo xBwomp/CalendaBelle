@@ -1,14 +1,11 @@
 import sqlite3 from 'sqlite3';
-import { promisify } from 'util';
 import { createTablesSQL } from './schema.js';
 import { User, CalendarEvent, SyncStatus } from '../types/index.js';
 
 export class Database {
   private db: sqlite3.Database;
-  private dbPath: string;
 
   constructor(dbPath: string) {
-    this.dbPath = dbPath;
     this.db = new sqlite3.Database(dbPath, (err) => {
       if (err) {
         console.error('Error opening database:', err);

@@ -41,21 +41,32 @@ app.use(session({
     }
 }));
 // Initialize services
-const dbPath = process.env.DB_PATH || './data/calendar.db';
+const dbPath = process.env.DB_PATH || 'dist/server/database/calendar.db';
 const dbDir = path.dirname(dbPath);
 // Create data directory if it doesn't exist
 if (!existsSync(dbDir)) {
     mkdirSync(dbDir, { recursive: true });
     console.log(`Created directory: ${dbDir}`);
 }
-const database = new Database(dbPath);
-const googleAuth = new GoogleAuthService();
-const syncService = new CalendarSyncService(googleAuth, database);
+// Initialize services with error handling
+let database;
+let googleAuth;
+let syncService;
+try {
+    database = new Database(dbPath);
+    googleAuth = new GoogleAuthService();
+    syncService = new CalendarSyncService(googleAuth, database);
+    console.log('✅ Services initialized successfully');
+}
+catch (error) {
+    console.error('❌ Failed to initialize services:', error);
+    process.exit(1);
+}
 // API Routes
 app.use('/api/auth', createAuthRoutes(googleAuth, database));
 app.use('/api/calendar', createCalendarRoutes(database, syncService));
 // Health check endpoint
-app.get('/api/health', (req, res) => {
+app.get('/api/health', (_req, res) => {
     res.json({
         status: 'ok',
         timestamp: new Date().toISOString(),
@@ -66,13 +77,13 @@ app.get('/api/health', (req, res) => {
 if (process.env.NODE_ENV === 'production') {
     const clientPath = path.join(__dirname, '../client');
     app.use(express.static(clientPath));
-    app.get('*', (req, res) => {
+    app.get('*', (_req, res) => {
         res.sendFile(path.join(clientPath, 'index.html'));
     });
 }
 else {
     // Development mode - API only
-    app.get('/', (req, res) => {
+    app.get('/', (_req, res) => {
         res.json({
             message: 'Raspberry Pi Calendar Dashboard API',
             status: 'running',
@@ -82,7 +93,7 @@ else {
     });
 }
 // Error handling middleware
-app.use((err, req, res, next) => {
+app.use((err, _req, res, _next) => {
     console.error('Server error:', err);
     res.status(500).json({
         error: process.env.NODE_ENV === 'production' ? 'Internal server error' : err.message

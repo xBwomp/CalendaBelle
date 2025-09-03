@@ -14,7 +14,7 @@ export function createAuthRoutes(googleAuth: GoogleAuthService, database: Databa
   const router = express.Router();
 
   // Initiate Google OAuth flow
-  router.get('/login', (req, res) => {
+  router.get('/login', (_req, res) => {
     try {
       if (!googleAuth.isReady()) {
         return res.status(503).json({ 
@@ -62,7 +62,7 @@ export function createAuthRoutes(googleAuth: GoogleAuthService, database: Databa
         id: userInfo.id,
         email: userInfo.email,
         name: userInfo.name,
-        picture: userInfo.picture,
+        picture: userInfo.picture || undefined,
         access_token: tokens.access_token,
         refresh_token: tokens.refresh_token || '',
         expires_at: tokens.expiry_date || Date.now() + 3600000,

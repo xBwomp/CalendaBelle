@@ -2,14 +2,22 @@ import express from 'express';
 export function createAuthRoutes(googleAuth, database) {
     const router = express.Router();
     // Initiate Google OAuth flow
-    router.get('/login', (req, res) => {
+    router.get('/login', (_req, res) => {
         try {
+            if (!googleAuth.isReady()) {
+                return res.status(503).json({
+                    error: 'Google OAuth2 not configured. Please check server configuration.'
+                });
+            }
             const authUrl = googleAuth.getAuthUrl();
             res.redirect(authUrl);
         }
         catch (error) {
             console.error('Auth login error:', error);
-            res.status(500).json({ error: 'Failed to initiate authentication' });
+            res.status(500).json({
+                error: 'Failed to initiate authentication',
+                details: error instanceof Error ? error.message : 'Unknown error'
+            });
         }
     });
     // Handle OAuth callback
@@ -35,7 +43,7 @@ export function createAuthRoutes(googleAuth, database) {
                 id: userInfo.id,
                 email: userInfo.email,
                 name: userInfo.name,
-                picture: userInfo.picture,
+                picture: userInfo.picture || undefined,
                 access_token: tokens.access_token,
                 refresh_token: tokens.refresh_token || '',
                 expires_at: tokens.expiry_date || Date.now() + 3600000,

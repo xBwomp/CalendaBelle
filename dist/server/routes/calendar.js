@@ -24,53 +24,36 @@ export function createCalendarRoutes(database, syncService) {
         }
     });
     // Get all events
-    router.get('/events/all', requireAuth, async (req, res) => {
+    router.get('/events/all', requireAuth, async (_req, res) => {
         try {
             const events = await database.getAllEvents();
             res.json(events);
         }
         catch (error) {
-            console.error('Get all events error:', error);
-            res.status(500).json({ error: 'Failed to fetch all events' });
+            console.error('Error fetching all events:', error);
+            res.status(500).json({ error: 'Failed to fetch events' });
         }
     });
     // Manual sync
-    router.post('/sync', requireAuth, async (req, res) => {
+    router.post('/sync', requireAuth, async (_req, res) => {
         try {
-            console.log('Manual sync requested');
             const result = await syncService.syncCalendarEvents();
-            if (result.success) {
-                res.json({
-                    success: true,
-                    message: `Successfully synced ${result.eventsCount} events`,
-                    eventsCount: result.eventsCount
-                });
-            }
-            else {
-                res.status(500).json({
-                    success: false,
-                    error: result.error,
-                    eventsCount: 0
-                });
-            }
+            res.json(result);
         }
         catch (error) {
-            console.error('Manual sync error:', error);
-            res.status(500).json({
-                success: false,
-                error: 'Failed to sync calendar events'
-            });
+            console.error('Error syncing calendar:', error);
+            res.status(500).json({ error: 'Failed to sync calendar' });
         }
     });
     // Get sync status
-    router.get('/sync/status', requireAuth, async (req, res) => {
+    router.get('/sync/status', requireAuth, async (_req, res) => {
         try {
-            const syncStatus = await database.getLastSyncStatus();
-            res.json(syncStatus);
+            const status = await database.getLastSyncStatus();
+            res.json(status);
         }
         catch (error) {
-            console.error('Get sync status error:', error);
-            res.status(500).json({ error: 'Failed to get sync status' });
+            console.error('Error fetching sync status:', error);
+            res.status(500).json({ error: 'Failed to fetch sync status' });
         }
     });
     return router;

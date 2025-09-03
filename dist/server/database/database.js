@@ -2,7 +2,6 @@ import sqlite3 from 'sqlite3';
 import { createTablesSQL } from './schema.js';
 export class Database {
     constructor(dbPath) {
-        this.dbPath = dbPath;
         this.db = new sqlite3.Database(dbPath, (err) => {
             if (err) {
                 console.error('Error opening database:', err);

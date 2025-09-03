@@ -50,7 +50,7 @@ app.use(session({
 }));
 
 // Initialize services
-const dbPath = process.env.DB_PATH || './data/calendar.db';
+const dbPath = process.env.DB_PATH || 'dist/server/database/calendar.db';
 const dbDir = path.dirname(dbPath);
 
 // Create data directory if it doesn't exist
@@ -79,7 +79,7 @@ app.use('/api/auth', createAuthRoutes(googleAuth, database));
 app.use('/api/calendar', createCalendarRoutes(database, syncService));
 
 // Health check endpoint
-app.get('/api/health', (req, res) => {
+app.get('/api/health', (_req, res) => {
   res.json({ 
     status: 'ok', 
     timestamp: new Date().toISOString(),
@@ -92,12 +92,12 @@ if (process.env.NODE_ENV === 'production') {
   const clientPath = path.join(__dirname, '../client');
   app.use(express.static(clientPath));
   
-  app.get('*', (req, res) => {
+  app.get('*', (_req, res) => {
     res.sendFile(path.join(clientPath, 'index.html'));
   });
 } else {
   // Development mode - API only
-  app.get('/', (req, res) => {
+  app.get('/', (_req, res) => {
     res.json({ 
       message: 'Raspberry Pi Calendar Dashboard API',
       status: 'running',
@@ -108,7 +108,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 // Error handling middleware
-app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error('Server error:', err);
   res.status(500).json({ 
     error: process.env.NODE_ENV === 'production' ? 'Internal server error' : err.message 
