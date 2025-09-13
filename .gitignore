@@ -1,2 +1,4 @@
 node_modules
 .env
+./data/calendar.db
+dist/server/database/calendar.db
