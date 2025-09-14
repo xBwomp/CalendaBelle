@@ -1,8 +1,9 @@
 import { google } from 'googleapis';
 export class CalendarSyncService {
-    constructor(googleAuth, database) {
+    constructor(googleAuth, database, calendarManagement) {
         this.googleAuth = googleAuth;
         this.database = database;
+        this.calendarManagement = calendarManagement;
     }
     async syncCalendarEvents() {
         try {
