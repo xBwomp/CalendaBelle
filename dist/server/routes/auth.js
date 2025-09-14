@@ -26,10 +26,10 @@ export function createAuthRoutes(googleAuth, database) {
             const { code, error } = req.query;
             if (error) {
                 console.error('OAuth error:', error);
-                return res.redirect('/?error=oauth_error');
+                return res.redirect('http://localhost:3000/?error=oauth_error');
             }
             if (!code || typeof code !== 'string') {
-                return res.redirect('/?error=missing_code');
+                return res.redirect('http://localhost:3000/?error=missing_code');
             }
             // Exchange code for tokens
             const tokens = await googleAuth.getTokens(code);
@@ -55,11 +55,11 @@ export function createAuthRoutes(googleAuth, database) {
             req.session.isAuthenticated = true;
             req.session.userId = user.id;
             console.log(`User authenticated successfully: ${user.email}`);
-            res.redirect('/?auth=success');
+            res.redirect('http://localhost:3000/?auth=success');
         }
         catch (error) {
             console.error('Auth callback error:', error);
-            res.redirect('/?error=auth_failed');
+            res.redirect('http://localhost:3000/?error=auth_failed');
         }
     });
     // Check authentication status

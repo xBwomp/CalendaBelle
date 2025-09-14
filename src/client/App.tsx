@@ -14,6 +14,7 @@ function App() {
     calendars,
     selectedCalendarId,
     events,
+    syncStatus,
     loading: calendarLoading,
     syncing,
     syncCalendars,
@@ -22,15 +23,25 @@ function App() {
     fetchEvents
   } = useCalendar();
 
+  console.log('App render - authenticated:', authenticated, 'selectedCalendarId:', selectedCalendarId, 'authLoading:', authLoading);
+
   // Determine app state based on authentication and calendar selection
   useEffect(() => {
-    if (authLoading) return;
+    console.log('App useEffect - authLoading:', authLoading, 'authenticated:', authenticated, 'selectedCalendarId:', selectedCalendarId);
+    
+    if (authLoading) {
+      console.log('Still loading auth...');
+      return;
+    }
 
     if (!authenticated) {
+      console.log('Not authenticated, showing login');
       setAppState('login');
     } else if (!selectedCalendarId) {
+      console.log('Authenticated but no calendar selected, showing setup');
       setAppState('setup');
     } else {
+      console.log('Authenticated and calendar selected, showing calendar');
       setAppState('calendar');
     }
   }, [authenticated, selectedCalendarId, authLoading]);
@@ -82,6 +93,8 @@ function App() {
     );
   };
 
+  console.log('App rendering state:', appState);
+
   if (authLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -113,17 +126,32 @@ function App() {
       return (
         <CalendarView
           events={events}
+          syncStatus={syncStatus}
           loading={calendarLoading}
           syncing={syncing}
-          onSyncEvents={handleSyncEventsAndRefresh}
-          onShowSettings={handleShowSettings}
+          user={user!}
+          onSyncCalendar={handleSyncEventsAndRefresh}
           onLogout={logout}
-          userName={user?.name || 'User'}
+          onRefreshEvents={() => {
+            const today = new Date();
+            const endDate = new Date();
+            endDate.setDate(today.getDate() + 5);
+            fetchEvents(
+              today.toISOString().split('T')[0],
+              endDate.toISOString().split('T')[0]
+            );
+          }}
         />
       );
 
     default:
-      return null;
+      return (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-gray-600">Unknown app state: {appState}</p>
+          </div>
+        </div>
+      );
   }
 }
 

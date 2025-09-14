@@ -9,6 +9,7 @@ import dotenv from 'dotenv';
 import { Database } from './database/database.js';
 import { GoogleAuthService } from './services/googleAuth.js';
 import { CalendarSyncService } from './services/calendarSync.js';
+import { CalendarManagementService } from './services/calendarManagement.js';
 import { createAuthRoutes } from './routes/auth.js';
 import { createCalendarRoutes } from './routes/calendar.js';
 import { securityMiddleware, createRateLimit, requestLogger } from './middleware/security.js';
@@ -50,7 +51,7 @@ app.use(session({
 }));
 
 // Initialize services
-const dbPath = process.env.DB_PATH || 'dist/server/database/calendar.db';
+const dbPath = process.env.DB_PATH || './data/calendar.db';
 const dbDir = path.dirname(dbPath);
 
 // Create data directory if it doesn't exist
@@ -62,12 +63,14 @@ if (!existsSync(dbDir)) {
 // Initialize services with error handling
 let database: Database;
 let googleAuth: GoogleAuthService;
+let calendarManagement: CalendarManagementService;
 let syncService: CalendarSyncService;
 
 try {
   database = new Database(dbPath);
   googleAuth = new GoogleAuthService();
-  syncService = new CalendarSyncService(googleAuth, database);
+  calendarManagement = new CalendarManagementService(googleAuth, database);
+  syncService = new CalendarSyncService(googleAuth, database, calendarManagement);
   console.log('✅ Services initialized successfully');
 } catch (error) {
   console.error('❌ Failed to initialize services:', error);
@@ -76,7 +79,7 @@ try {
 
 // API Routes
 app.use('/api/auth', createAuthRoutes(googleAuth, database));
-app.use('/api/calendar', createCalendarRoutes(database, syncService));
+app.use('/api/calendar', createCalendarRoutes(database, syncService, calendarManagement));
 
 // Health check endpoint
 app.get('/api/health', (_req, res) => {
