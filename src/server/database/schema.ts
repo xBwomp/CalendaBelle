@@ -28,6 +28,30 @@ export const createTablesSQL = `
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 
+  -- User calendars table
+  CREATE TABLE IF NOT EXISTS user_calendars (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id TEXT NOT NULL,
+    calendar_id TEXT NOT NULL,
+    summary TEXT NOT NULL,
+    description TEXT,
+    is_primary BOOLEAN DEFAULT FALSE,
+    access_role TEXT DEFAULT 'reader',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, calendar_id),
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+  );
+
+  -- User settings table
+  CREATE TABLE IF NOT EXISTS user_settings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id TEXT NOT NULL UNIQUE,
+    selected_calendar_id TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+  );
+
   -- Sync status table
   CREATE TABLE IF NOT EXISTS sync_status (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -44,4 +68,6 @@ export const createTablesSQL = `
   CREATE INDEX IF NOT EXISTS idx_events_google_id ON calendar_events(google_event_id);
   CREATE INDEX IF NOT EXISTS idx_events_time_range ON calendar_events(start_time, end_time);
   CREATE INDEX IF NOT EXISTS idx_sync_status_timestamp ON sync_status(last_sync);
+  CREATE INDEX IF NOT EXISTS idx_user_calendars_user_id ON user_calendars(user_id);
+  CREATE INDEX IF NOT EXISTS idx_user_settings_user_id ON user_settings(user_id);
 `;
