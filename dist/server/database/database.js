@@ -179,4 +179,48 @@ export class Database {
             });
         });
     }
+    // Calendar management methods
+    async saveUserCalendars(userId, calendars) {
+        // Clear existing calendars for this user
+        await this.run('DELETE FROM user_calendars WHERE user_id = ?', [userId]);
+        // Insert new calendars
+        const sql = `
+      INSERT INTO user_calendars (user_id, calendar_id, summary, description, is_primary, access_role)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `;
+        for (const calendar of calendars) {
+            await this.run(sql, [
+                userId,
+                calendar.id,
+                calendar.summary,
+                calendar.description || null,
+                calendar.primary || false,
+                calendar.accessRole
+            ]);
+        }
+    }
+    async getUserCalendars(userId) {
+        const sql = 'SELECT * FROM user_calendars WHERE user_id = ? ORDER BY is_primary DESC, summary ASC';
+        const rows = await this.all(sql, [userId]);
+        return rows.map(row => ({
+            id: row.calendar_id,
+            summary: row.summary,
+            description: row.description,
+            primary: Boolean(row.is_primary),
+            accessRole: row.access_role
+        }));
+    }
+    async saveUserSettings(userId, settings) {
+        const sql = `
+      INSERT OR REPLACE INTO user_settings 
+      (user_id, selected_calendar_id, updated_at)
+      VALUES (?, ?, CURRENT_TIMESTAMP)
+    `;
+        await this.run(sql, [userId, settings.selected_calendar_id || null]);
+    }
+    async getUserSettings(userId) {
+        const sql = 'SELECT * FROM user_settings WHERE user_id = ?';
+        const row = await this.get(sql, [userId]);
+        return row || null;
+    }
 }
