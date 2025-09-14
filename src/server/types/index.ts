@@ -49,3 +49,22 @@ export interface GoogleCalendarEvent {
   created: string;
   updated: string;
 }
+
+export interface UserSettings {
+  id: number;
+  user_id: string;
+  selected_calendar_id?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UserCalendar {
+  id: number;
+  user_id: string;
+  calendar_id: string;
+  summary: string;
+  description?: string;
+  is_primary: boolean;
+  access_role: string;
+  created_at: string;
+}

@@ -6,10 +6,12 @@ import { CalendarEvent, GoogleCalendarEvent, User } from '../types/index.js';
 export class CalendarSyncService {
   private googleAuth: GoogleAuthService;
   private database: Database;
+  private calendarManagement: CalendarManagementService;
 
-  constructor(googleAuth: GoogleAuthService, database: Database) {
+  constructor(googleAuth: GoogleAuthService, database: Database, calendarManagement: CalendarManagementService) {
     this.googleAuth = googleAuth;
     this.database = database;
+    this.calendarManagement = calendarManagement;
   }
 
   async syncCalendarEvents(): Promise<{ success: boolean; eventsCount: number; error?: string }> {

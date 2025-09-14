@@ -71,7 +71,7 @@ try {
   calendarManagement = new CalendarManagementService(googleAuth, database);
   
   console.log('Initializing Sync Service...');
-  syncService = new CalendarSyncService(googleAuth, database);
+  syncService = new CalendarSyncService(googleAuth, database, calendarManagement);
   
   console.log('✅ All services initialized successfully');
 } catch (error) {
