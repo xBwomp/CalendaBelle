@@ -48,6 +48,7 @@ A TypeScript-based web application designed for Raspberry Pi kiosk displays that
    GOOGLE_CLIENT_ID=your_google_client_id_here
    GOOGLE_CLIENT_SECRET=your_google_client_secret_here
    GOOGLE_REDIRECT_URI=http://localhost:3001/api/auth/callback
+   CLIENT_URL=http://localhost:3000
    SESSION_SECRET=your_random_session_secret_here
    PORT=3001
    NODE_ENV=development
@@ -77,6 +78,30 @@ npm run build
 # Start production server
 npm start
 ```
+
+### 6. Production Environment Variables
+
+For production deployment, update your `.env` file with production URLs:
+
+```env
+# Use your production domain
+CLIENT_URL=https://yourdomain.com
+GOOGLE_REDIRECT_URI=https://yourdomain.com/api/auth/callback
+
+# Important: Set NODE_ENV to production
+NODE_ENV=production
+
+# Generate a strong session secret (use a random string generator)
+SESSION_SECRET=your_strong_random_secret_here
+
+# HTTPS is required in production for secure cookies
+```
+
+**Important Notes for Production:**
+- `CLIENT_URL` must match your frontend URL (used for OAuth redirects and CORS)
+- `GOOGLE_REDIRECT_URI` must be added to Google Cloud Console authorized redirect URIs
+- Production requires HTTPS for secure session cookies
+- Generate a strong, unique `SESSION_SECRET`
 
 ## Raspberry Pi Deployment
 
@@ -116,6 +141,7 @@ Type=simple
 User=pi
 WorkingDirectory=/home/pi/google-calendar-kiosk
 Environment=NODE_ENV=production
+EnvironmentFile=/home/pi/google-calendar-kiosk/.env
 ExecStart=/usr/bin/node dist/server.js
 Restart=always
 RestartSec=10
@@ -123,6 +149,8 @@ RestartSec=10
 [Install]
 WantedBy=multi-user.target
 ```
+
+**Note:** Make sure to create a `.env` file with your production configuration before starting the service.
 
 Enable and start the service:
 
@@ -192,10 +220,19 @@ The application uses SQLite with the following tables:
 
 ### Common Issues
 
-1. **OAuth Error**: Verify Google Cloud credentials and redirect URI
-2. **Database Issues**: Check file permissions for SQLite database
-3. **Sync Failures**: Ensure internet connectivity and valid tokens
-4. **Port Conflicts**: Change PORT in .env if 3001 is in use
+1. **OAuth Callback Not Working in Production**:
+   - Ensure `CLIENT_URL` is set to your production frontend URL
+   - Verify `GOOGLE_REDIRECT_URI` is added to Google Cloud Console
+   - Check that your production domain uses HTTPS (required for secure cookies)
+   - Confirm CORS is properly configured with the correct `CLIENT_URL`
+
+2. **OAuth Error**: Verify Google Cloud credentials and redirect URI
+
+3. **Database Issues**: Check file permissions for SQLite database
+
+4. **Sync Failures**: Ensure internet connectivity and valid tokens
+
+5. **Port Conflicts**: Change PORT in .env if 3001 is in use
 
 ### Logs
 

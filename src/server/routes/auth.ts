@@ -13,6 +13,9 @@ declare module 'express-session' {
 export function createAuthRoutes(googleAuth: GoogleAuthService, database: Database) {
   const router = express.Router();
 
+  // Get client URL from environment, fallback to localhost for development
+  const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:3000';
+
   // Initiate Google OAuth flow
   router.get('/login', (_req, res) => {
     try {
@@ -40,11 +43,11 @@ export function createAuthRoutes(googleAuth: GoogleAuthService, database: Databa
       
       if (error) {
         console.error('OAuth error:', error);
-        return res.redirect('http://localhost:3000/?error=oauth_error');
+        return res.redirect(`${CLIENT_URL}/?error=oauth_error`);
       }
 
       if (!code || typeof code !== 'string') {
-        return res.redirect('http://localhost:3000/?error=missing_code');
+        return res.redirect(`${CLIENT_URL}/?error=missing_code`);
       }
 
       // Exchange code for tokens
@@ -77,11 +80,11 @@ export function createAuthRoutes(googleAuth: GoogleAuthService, database: Databa
       req.session.userId = user.id;
 
       console.log(`User authenticated successfully: ${user.email}`);
-      res.redirect('http://localhost:3000/?auth=success');
+      res.redirect(`${CLIENT_URL}/?auth=success`);
 
     } catch (error) {
       console.error('Auth callback error:', error);
-      res.redirect('http://localhost:3000/?error=auth_failed');
+      res.redirect(`${CLIENT_URL}/?error=auth_failed`);
     }
   });
 
